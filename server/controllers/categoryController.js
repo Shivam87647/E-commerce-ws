@@ -1,62 +1,81 @@
 const categoryModel = require("../models/categoryModel");
+const { sendCreated, sendBadRequest, sendNotFound, sendServerError, sendConflict, sendSuccess, sendOk } = require("../utils/response")
 
 const create = async (req, res) => {
     try {
         const { name, slug } = req.body
-        if (!name || !slug) {
-            return res.status(200).json({
-                msg: "All field is required ",
-                success: false
-            })
-        }
+        if (!name || !slug) return sendBadRequest(res);
+
         const category = await categoryModel.findOne({ name });
-        if (category) {
-            return res.status(200).json(
-                {
-                    msg: "Category already existed",
-                    success: false
-                }
-            )
-        }
+        if (category) return sendConflict(res);
 
         await categoryModel.create({ name, slug });
-        return res.status(201).json(
-            {
-                msg: "Category created succesfully",
-                success: true
-            }
-        )
-
+        return sendCreated(res);
     } catch (error) {
-        res.status(500).json(
-            {
-                msg: "Internal Server Error",
-                success: false
-            }
-        )
+        sendServerError(res);
     }
 }
 const read = async (req, res) => {
     try {
         const category = await categoryModel.find();
+        const count = await categoryModel.countDocuments();
         if (category) {
-            return res.status(200).json({
-                msg: "category find",
-                success: true,
-                categories: category
-            })
+            return sendSuccess(res, "category find", category, {
+                total: count
+            });
         }
 
     } catch (error) {
-        res.status(500).json(
+        sendServerError(res);
+        console.error(error);
+    }
+}
+
+
+const getById = async (req, res) => {
+    try {
+        const id = req.params.id
+        const category = await categoryModel.findById(id);
+        // const count = await categoryModel.countDocuments();
+        if (category) {
+            return sendSuccess(res, "category find", category);
+        }
+
+    } catch (error) {
+        sendServerError(res);
+        console.error(error);
+    }
+}
+
+const status = async (req, res) => {
+    try {
+        const { field } = req.body;
+        const id = req.params.id;
+        const category = await categoryModel.findById(id);
+        if (!category) return sendNotFound(res);
+        const fields = ["is_home", "status" ,"is_top", "is_popular"];
+
+        if (!fields.includes(field)) {
+            return sendBadRequest(res)
+        }
+
+        await categoryModel.findByIdAndUpdate(
+            id,
             {
-                msg: "Internal Server Error",
-                success: false
+                [field]: !category[field]
             }
         )
+        return sendOk(res, "status update");
+
+    } catch (error) {
+        console.error(error);
+        sendServerError(res);
     }
 }
 
 module.exports = {
-    create, read
-}
+    create,
+    read,
+    getById,
+    status
+};
