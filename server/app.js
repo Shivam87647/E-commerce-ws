@@ -4,8 +4,9 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
-app.use(cors());
-app.use("/api/category", require("./routers/categoryRouter"));
+app.use(cors("*"));
+app.use("/api/category", require("./routers/category.router"));
+app.use(express.static("./public"))
 
 
 mongoose.connect(process.env.MONGODB_URL).then(

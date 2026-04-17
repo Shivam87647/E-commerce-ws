@@ -8,12 +8,7 @@ const sendSuccess = (res, message = "Success", data = {}, meta = {}) => {
   });
 };
 
-const sendOk = (res, message = "Success") => {
-  return res.status(200).json({
-    success: true,
-    message
-  });
-};
+
 
 
 // created response
@@ -65,6 +60,5 @@ module.exports = {
   sendBadRequest,
   sendNotFound,
   sendConflict,
-  sendServerError,
-  sendOk
+  sendServerError
 };
